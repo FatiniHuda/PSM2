@@ -4,9 +4,9 @@ import 'admin_registration.dart'; // Import the admin registration page
 import 'forgot_password.dart'; // Import the forgot password page
 import 'admin_page.dart'; // Import the admin page
 import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AdminLoginPage extends StatefulWidget {
-
   @override
   _AdminLoginPageState createState() => _AdminLoginPageState();
 }
@@ -144,48 +144,60 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         _errorMessage = '';
       });
 
-      final username = _usernameController.text;
-      final password = _passwordController.text;
-
       try {
-        // Send login request to the backend server
-        final response = await http.post(
-          Uri.parse('http://10.4.29.194/ordering/admin_login'),
-          // Replace with your actual backend URL
-          body: {
-            'username': username,
-            'password': password,
-          },
-        );
+        final response = await authenticateUser();
+        if (response == 'success') {
+          // Show toast message for successful login
+          Fluttertoast.showToast(
+            msg: 'Log Masuk Berjaya',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
 
-        if (response.statusCode == 200) {
-          // Login successful
-          // Navigate to the admin page or perform any other actions
+          // Navigate to the admin page after successful login
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AdminPage()),
           );
-        } else if (response.statusCode == 401) {
-          // Unauthorized access (invalid username or password)
+        } else {
+          // Show error message if authentication fails
           setState(() {
             _errorMessage = 'Nama pengguna atau kata laluan tidak sah';
-            _isLoading = false;
-          });
-        } else {
-          // Other server errors
-          setState(() {
-            _errorMessage = 'Ralat pada pelayan. Sila cuba lagi.';
-            _isLoading = false;
           });
         }
-      } catch (e) {
-        // Network or other errors
-        print('Error logging in: $e');
+      } catch (error) {
+        // Show error message for any other errors
         setState(() {
-          _errorMessage = 'Ralat: $e';
+          _errorMessage = 'Ralat: $error';
+        });
+      } finally {
+        // Reset loading state
+        setState(() {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<String> authenticateUser() async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://10.4.29.194/ordering/admin_login.php'),
+        body: {
+          'username': _usernameController.text,
+          'password': _passwordController.text,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return response.body.trim();
+      } else {
+        throw 'Failed to connect to the server. Error code: ${response.statusCode}';
+      }
+    } catch (error) {
+      throw 'An error occurred: $error';
     }
   }
 
