@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'admin_registration.dart'; // Import the admin registration page
 import 'forgot_password.dart'; // Import the forgot password page
 import 'admin_page.dart'; // Import the admin page
+import 'package:http/http.dart' as http;
 
 class AdminLoginPage extends StatefulWidget {
+
   @override
   _AdminLoginPageState createState() => _AdminLoginPageState();
 }
@@ -69,7 +71,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _login,
-                  child: _isLoading ? CircularProgressIndicator() : Text('Log Masuk'),
+                  child: _isLoading ? CircularProgressIndicator() : Text(
+                      'Log Masuk'),
                 ),
               ),
               SizedBox(height: 10.0), // Added space
@@ -101,7 +104,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           // Navigate to registration page when "Daftar" is tapped
                           await Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => AdminRegistrationPage()),
+                            MaterialPageRoute(
+                                builder: (context) => AdminRegistrationPage()),
                           );
                         },
                     ),
@@ -118,7 +122,8 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           // Navigate to forgot password page when "Lupa Kata Laluan" is tapped
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                            MaterialPageRoute(
+                                builder: (context) => ForgotPasswordPage()),
                           );
                         },
                     ),
@@ -142,20 +147,42 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       final username = _usernameController.text;
       final password = _passwordController.text;
 
-      // Simulate login process (replace with your actual login logic)
-      await Future.delayed(Duration(seconds: 2));
-
-      // Example login logic: check if username and password are valid
-      if (username == 'admin' && password == 'password') {
-        // Navigate to the admin page when login is successful
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => AdminPage()),
+      try {
+        // Send login request to the backend server
+        final response = await http.post(
+          Uri.parse('http://10.4.29.194/ordering/admin_login'),
+          // Replace with your actual backend URL
+          body: {
+            'username': username,
+            'password': password,
+          },
         );
-      } else {
-        // Show error message if login fails
+
+        if (response.statusCode == 200) {
+          // Login successful
+          // Navigate to the admin page or perform any other actions
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AdminPage()),
+          );
+        } else if (response.statusCode == 401) {
+          // Unauthorized access (invalid username or password)
+          setState(() {
+            _errorMessage = 'Nama pengguna atau kata laluan tidak sah';
+            _isLoading = false;
+          });
+        } else {
+          // Other server errors
+          setState(() {
+            _errorMessage = 'Ralat pada pelayan. Sila cuba lagi.';
+            _isLoading = false;
+          });
+        }
+      } catch (e) {
+        // Network or other errors
+        print('Error logging in: $e');
         setState(() {
-          _errorMessage = 'Nama pengguna atau kata laluan tidak sah';
+          _errorMessage = 'Ralat: $e';
           _isLoading = false;
         });
       }
