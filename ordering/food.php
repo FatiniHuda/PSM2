@@ -1,29 +1,22 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "ordering";
+include 'db_connect.php'; // Assuming you have a file for database connection
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+header('Content-Type: application/json');
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+$query = "SELECT * FROM food";
+$result = mysqli_query($conn, $query);
+
+if (!$result) {
+    echo json_encode(["error" => "Failed to fetch data"]);
+    exit();
 }
 
-// Prepare and bind
-$stmt = $conn->prepare("INSERT INTO food (food_name, food_price, food_image) VALUES (?, ?, ?)");
-$stmt->bind_param("ssdi", $food_name, $food_price, $food_image);
+$foodItems = array();
 
-// Set parameters and execute
-$food_name= "Nasi Lemak Ayam";
-$food_price = 5.50;
-$food_image = "assets/nasi_lemak_ayam.jpg";
-$stmt->execute();
+while ($row = mysqli_fetch_assoc($result)) {
+    $row['image'] = base64_encode($row['image']); // Convert image to base64
+    $foodItems[] = $row;
+}
 
-echo "New records created successfully";
-
-$stmt->close();
-$conn->close();
+echo json_encode($foodItems);
 ?>
