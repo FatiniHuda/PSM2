@@ -1,30 +1,9 @@
 import 'dart:convert';
-import 'package:applikasi_pesanan_makanan/cart_page.dart';
-import 'package:applikasi_pesanan_makanan/main.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
-class MenuItem {
-  final String name;
-  final String image;
-  final String price;
-
-  MenuItem({
-    required this.name,
-    required this.image,
-    required this.price,
-  });
-
-  factory MenuItem.fromJson(Map<String, dynamic> json) {
-    return MenuItem(
-      name: json['name'],
-      image: json['image'],
-      price: json['price'],
-    );
-  }
-
-  get category => null;
-}
+import 'cart_page.dart';
+import 'main.dart';
+import 'menu_item.dart';
 
 class MenuPage extends StatefulWidget {
   @override
@@ -42,7 +21,7 @@ class _MenuPageState extends State<MenuPage> {
 
   Future<void> _fetchMenuItems() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost/food.php'));
+      final response = await http.get(Uri.parse('http://10.4.29.194/food.php'));
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
         setState(() {
@@ -140,7 +119,7 @@ class _MenuPageState extends State<MenuPage> {
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
+                    child: Image.memory(
                       item.image,
                       fit: BoxFit.cover,
                     ),
