@@ -17,7 +17,7 @@ class MenuItem {
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
       name: json['name'],
-      image: base64Decode(json['image']),
+      image: json['image'] != null ? base64Decode(json['image']) : Uint8List(0), // Handling possible null image
       price: json['price'],
       category: json['category'],
     );
