@@ -14,7 +14,12 @@ if (!$result) {
 $foodItems = array();
 
 while ($row = mysqli_fetch_assoc($result)) {
-    $row['image'] = base64_encode($row['image']); // Convert image to base64
+    // Check if the image data is not null before encoding
+    if (!is_null($row['image'])) {
+        $row['image'] = base64_encode($row['image']); // Convert image to base64
+    } else {
+        $row['image'] = null;
+    }
     $foodItems[] = $row;
 }
 
