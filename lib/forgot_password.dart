@@ -6,8 +6,12 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+  final _formKey = GlobalKey<FormState>(); // Key for the form
   bool _isPasswordObscure = true;
   bool _isConfirmPasswordObscure = true;
+  TextEditingController _usernameController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
+  TextEditingController _confirmPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -18,58 +22,94 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       body: Center(
         child: Padding(
           padding: EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 20.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Kata Laluan',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordObscure = !_isPasswordObscure;
-                      });
-                    },
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Pengguna',
                   ),
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Sila masukkan nama pengguna';
+                    }
+                    return null;
+                  },
                 ),
-                obscureText: _isPasswordObscure,
-              ),
-              SizedBox(height: 20.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Sahkan Kata Laluan',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isConfirmPasswordObscure ? Icons.visibility : Icons.visibility_off,
+                SizedBox(height: 20.0),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Kata Laluan',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordObscure = !_isPasswordObscure;
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isConfirmPasswordObscure = !_isConfirmPasswordObscure;
-                      });
-                    },
                   ),
+                  obscureText: _isPasswordObscure,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Sila masukkan kata laluan';
+                    }
+                    return null;
+                  },
                 ),
-                obscureText: _isConfirmPasswordObscure,
-              ),
-              SizedBox(height: 20.0),
-
-              Container(
-                width: double.infinity, // Make button width match parent width
-                child: ElevatedButton(
+                SizedBox(height: 20.0),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Sahkan Kata Laluan',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isConfirmPasswordObscure ? Icons.visibility : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isConfirmPasswordObscure = !_isConfirmPasswordObscure;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _isConfirmPasswordObscure,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Sila masukkan kata laluan pengesahan';
+                    } else if (value != _passwordController.text) {
+                      return 'Kata laluan tidak sepadan';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20.0),
+                ElevatedButton(
                   onPressed: () {
-                    // Add logic for sending password reset email
+                    if (_formKey.currentState!.validate()) {
+                      // Form is valid, proceed with password reset logic
+                      _resetPassword();
+                    }
                   },
                   child: Text('Tukar kata laluan'),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  void _resetPassword() {
+    // Implement logic for sending password reset email
+    // You can access the entered username and password via _usernameController.text and _passwordController.text respectively
+    // Optionally, you can show a confirmation dialog or a toast message here
   }
 }

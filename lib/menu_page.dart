@@ -5,6 +5,11 @@ import 'cart_page.dart';
 import 'menu_item.dart';
 
 class MenuPage extends StatefulWidget {
+  final String name;
+  final String tableNumber;
+
+  MenuPage({required this.name, required this.tableNumber});
+
   @override
   _MenuPageState createState() => _MenuPageState();
 }
@@ -88,7 +93,6 @@ class _MenuPageState extends State<MenuPage> {
     }
   }
 
-
   void _categorizeMenuItems() {
     _categorizedMenuItems['minuman'] =
         _menuItems.where((item) => item.category == 'minuman').toList();
@@ -97,8 +101,8 @@ class _MenuPageState extends State<MenuPage> {
     _categorizedMenuItems['lontong'] =
         _menuItems.where((item) => item.category == 'lontong').toList();
     _categorizedMenuItems['mee/meehun'] =
-        _menuItems.where((item) => item?.category == 'mee/meehun').toList();
-  }
+        _menuItems.where((item) => item.category == 'mee/meehun').toList();
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +110,7 @@ class _MenuPageState extends State<MenuPage> {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Menu'),
+          title: Text('Menu for ${widget.name} at Table ${widget.tableNumber}'),
           actions: [
             IconButton(
               icon: Icon(Icons.shopping_cart),
@@ -135,8 +139,6 @@ class _MenuPageState extends State<MenuPage> {
             ],
           ),
         ),
-
-
         body: TabBarView(
           children: [
             _buildMenuGridView(_categorizedMenuItems['minuman']!),

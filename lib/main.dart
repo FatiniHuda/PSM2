@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Login.dart'; // Import the admin login page
+import 'customer_page.dart';
 import 'menu_page.dart'; // Import the menu page
 
 void main() {
@@ -43,10 +44,10 @@ class MyHomePage extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to menu page
+                    // Navigate to the customer page
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MenuPage()),
+                      MaterialPageRoute(builder: (context) => CustomerPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -59,7 +60,7 @@ class MyHomePage extends StatelessWidget {
                   ),
                   child: Text('Pelanggan'),
                 ),
-              ),
+              ), // Remove this extra parenthesis
               SizedBox(height: 10), // Add some spacing between buttons
               Container(
                 width: double.infinity,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import 'menu_page.dart';
 
 class CustomerPage extends StatefulWidget {
@@ -18,11 +17,10 @@ class _CustomerPageState extends State<CustomerPage> {
     final name = _nameController.text;
     final tableNumber = _tableNumberController.text;
 
-    // Validate the form
     if (name.isEmpty || tableNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Sila isi semua medan.'),
+          content: Text('Please fill out all fields.'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -33,34 +31,48 @@ class _CustomerPageState extends State<CustomerPage> {
       _isLoading = true;
     });
 
-    // Send HTTP POST request
-    final url = Uri.parse('http://10.4.29.194/ordering/customer.php');
-    final response = await http.post(
-      url,
-      body: json.encode({'name': name, 'tableNumber': tableNumber}),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (response.statusCode == 200) {
-      // Successful POST request
-      // Navigate to the menu page passing the name and table number
-      Navigator.pushNamed(
-        context,
-        '/menu',
-        arguments: {'name': name, 'tableNumber': tableNumber},
+    try {
+      final url = Uri.parse('http://10.4.29.194/ordering/customer.php');
+      final response = await http.post(
+        url,
+        body: json.encode({'name': name, 'tableNumber': tableNumber}),
+        headers: {'Content-Type': 'application/json'},
       );
-    } else {
-      // Error handling for unsuccessful POST request
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.statusCode == 200) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MenuPage(
+              name: name,
+              tableNumber: tableNumber,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit customer data. Please try again.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        print('Error: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to submit customer data. Please try again.'),
+          content: Text('Network error. Please check your connection and try again.'),
           duration: Duration(seconds: 2),
         ),
       );
+      print('Network error: $e');
     }
   }
 
@@ -68,7 +80,7 @@ class _CustomerPageState extends State<CustomerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Maklumat Pelanggan'),
+        title: Text('Customer Information'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -79,14 +91,14 @@ class _CustomerPageState extends State<CustomerPage> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Nama',
+                labelText: 'Name',
               ),
             ),
             SizedBox(height: 10),
             TextField(
               controller: _tableNumberController,
               decoration: InputDecoration(
-                labelText: 'Nombor Meja',
+                labelText: 'Table Number',
               ),
               keyboardType: TextInputType.number,
             ),
@@ -101,7 +113,6 @@ class _CustomerPageState extends State<CustomerPage> {
                 ),
               ),
             ),
-            SizedBox(height: 10), // Add some spacing between buttons
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AdminRegistrationPage extends StatefulWidget {
   @override
@@ -51,6 +52,7 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
                   if (value!.isEmpty) {
                     return 'Sila masukkan alamat e-mel';
                   }
+                  // Add email format validation here if needed
                   return null;
                 },
               ),
@@ -75,6 +77,7 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
                   if (value!.isEmpty) {
                     return 'Sila masukkan kata laluan';
                   }
+                  // Add password strength validation here if needed
                   return null;
                 },
               ),
@@ -132,22 +135,36 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
-      setState(() {
-        _errorMessage = 'Sila isi semua medan';
-      });
+      Fluttertoast.showToast(
+        msg: 'Sila isi semua medan',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return false;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _errorMessage = 'Kata laluan tidak sepadan';
-      });
+      Fluttertoast.showToast(
+        msg: 'Kata laluan tidak sepadan',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
       return false;
     }
     return true;
   }
 
+
   Future<void> _registerUser() async {
     try {
+      // Clear error message
+      setState(() {
+        _errorMessage = '';
+      });
+
       // Validate inputs first
       if (!_validateInputs()) {
         return; // Stop registration process if inputs are not valid
@@ -160,7 +177,6 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
       // Set loading state
       setState(() {
         _isLoading = true;
-        _errorMessage = '';
       });
 
       // Perform registration
@@ -178,16 +194,23 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
         // Registration successful
         print('Registration successful');
         _showSuccessDialog(); // Show success dialog
+      } else if (response.statusCode == 400) {
+        // Registration failed due to validation error
+        print('Registration failed due to validation error');
+        setState(() {
+          _errorMessage = 'Pendaftaran gagal. Data tidak sah.';
+        });
+        _showErrorDialog(); // Show error dialog
       } else {
-        // Registration failed
+        // Other registration failures
         print('Registration failed with status: ${response.statusCode}');
-        // Display error message
         setState(() {
           _errorMessage = 'Pendaftaran gagal. Sila cuba lagi.';
         });
         _showErrorDialog(); // Show error dialog
       }
     } catch (e) {
+      // Error registering user
       print('Error registering user: $e');
       setState(() {
         _errorMessage = 'Ralat: $e';
@@ -200,7 +223,6 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
       });
     }
   }
-
 
   void _showSuccessDialog() {
     showDialog(

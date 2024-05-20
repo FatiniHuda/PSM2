@@ -162,10 +162,14 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
             MaterialPageRoute(builder: (context) => AdminPage()),
           );
         } else {
-          // Show error message if authentication fails
-          setState(() {
-            _errorMessage = 'Nama pengguna atau kata laluan tidak sah';
-          });
+          // Show toast message for failed login
+          Fluttertoast.showToast(
+            msg: 'Nama pengguna atau kata laluan tidak sah',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
         }
       } catch (error) {
         // Show error message for any other errors
@@ -184,7 +188,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   Future<String> authenticateUser() async {
     try {
       final response = await http.post(
-        Uri.parse('https://10.4.29.194/ordering/admin_login.php'),
+        Uri.parse('http://10.4.29.194/ordering/admin_login.php'),
         body: {
           'username': _usernameController.text,
           'password': _passwordController.text,
