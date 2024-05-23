@@ -1,50 +1,34 @@
 <?php
-include 'db_connect.php'; // Include the database connection setup
-
-// Enable error reporting for debugging
+header('Content-Type: application/json');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Get the posted data
-$postData = file_get_contents('php://input');
-$request = json_decode($postData, true);
+include 'db_connect.php'; // Make sure this file sets the variables $servername, $username, $password, $dbname
 
-// Validate input
-if (!isset($request['name']) || !isset($request['tableNumber'])) {
-    http_response_code(400); // Bad Request
-    echo json_encode(array("message" => "Invalid input."));
-    exit;
-}
 
-$name = $request['name'];
-$tableNumber = $request['tableNumber'];
+// Get data from POST request
+$name = isset($_POST['name']) ? $_POST['name'] : '';
+$tableNumber = isset($_POST['table_number']) ? $_POST['table_number'] : '';
 
 if (empty($name) || empty($tableNumber)) {
-    http_response_code(400); // Bad Request
-    echo json_encode(array("message" => "Name and table number are required."));
-    exit;
+    echo json_encode(array("status" => "error", "message" => "Name and Table Number are required."));
+    exit();
 }
 
 // Prepare and bind
 $stmt = $conn->prepare("INSERT INTO customer (name, table_number) VALUES (?, ?)");
-if ($stmt === false) {
-    http_response_code(500); // Internal Server Error
-    echo json_encode(array("message" => "Failed to prepare the SQL statement."));
-    exit;
+if (!$stmt) {
+    echo json_encode(array("status" => "error", "message" => "Prepare statement failed: " . $conn->error));
+    exit();
 }
-
 $stmt->bind_param("ss", $name, $tableNumber);
 
-// Execute the statement
 if ($stmt->execute()) {
-    http_response_code(200); // OK
-    echo json_encode(array("message" => "Customer data inserted successfully."));
+    echo json_encode(array("status" => "success"));
 } else {
-    http_response_code(500); // Internal Server Error
-    echo json_encode(array("message" => "Failed to insert customer data."));
+    echo json_encode(array("status" => "error", "message" => $stmt->error));
 }
 
-// Close the statement and connection
 $stmt->close();
 $conn->close();
 ?>
