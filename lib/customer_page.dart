@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'menu_page.dart';
 
 class CustomerPage extends StatefulWidget {
@@ -9,70 +9,82 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _tableNumberController = TextEditingController();
-  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+  String _name = '';
+  String _tableNumber = '';
 
-  Future<void> _submitCustomerData(BuildContext context) async {
-    final name = _nameController.text;
-    final tableNumber = _tableNumberController.text;
-
-    if (name.isEmpty || tableNumber.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill out all fields.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final url = Uri.parse('http://10.4.29.194/ordering/customer.php');
-      final response = await http.post(
-        url,
-        body: json.encode({'name': name, 'tableNumber': tableNumber}),
-        headers: {'Content-Type': 'application/json'},
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      var url = 'http://10.4.29.194/ordering/customer.php';
+      var response = await http.post(
+        Uri.parse(url),
+        body: {
+          'name': _name,
+          'table_number': _tableNumber,
+        },
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MenuPage(
-              name: name,
-              tableNumber: tableNumber,
+      if (response.headers['content-type']?.contains('application/json') == true) {
+        var responseData;
+        try {
+          responseData = json.decode(response.body);
+        } catch (e) {
+          print('Error decoding JSON: $e');
+          return;
+        }
+
+        if (responseData['status'] == 'success') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MenuPage(name: _name, tableNumber: _tableNumber),
             ),
-          ),
-        );
+          );
+        } else {
+          // Handle error
+          print('Error: ${responseData['message']}');
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('Error'),
+                content: Text(responseData['message'] ?? 'Unknown error'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to submit customer data. Please try again.'),
-            duration: Duration(seconds: 2),
-          ),
+        print('Unexpected response type: ${response.headers['content-type']}');
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('Unexpected response from server. Please try again later.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
         );
-        print('Error: ${response.statusCode} - ${response.body}');
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Network error. Please check your connection and try again.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      print('Network error: $e');
     }
   }
 
@@ -80,40 +92,55 @@ class _CustomerPageState extends State<CustomerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Customer Information'),
+        title: Text('Selamat datang'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Sila masukkan nama dan nombor meja:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              controller: _tableNumberController,
-              decoration: InputDecoration(
-                labelText: 'Table Number',
+              SizedBox(height: 10),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  _name = value!;
+                },
               ),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => _submitCustomerData(context),
-                child: _isLoading ? CircularProgressIndicator() : Text(
-                  'Proceed to Menu',
-                  style: TextStyle(fontSize: 18.0),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Table Number'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your table number';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  _tableNumber = value!;
+                },
+              ),
+              SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  child: Text('Proceed to Menu'),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

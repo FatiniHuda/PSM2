@@ -16,7 +16,7 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   List<MenuItem> _menuItems = [];
-  List<MenuItem> _cartItems = []; // Define _cartItems list
+  List<MenuItem> _cartItems = [];
   Map<String, List<MenuItem>> _categorizedMenuItems = {
     'minuman': [],
     'nasi': [],
@@ -46,14 +46,12 @@ class _MenuPageState extends State<MenuPage> {
       }
     } catch (e) {
       print('Error fetching menu items: $e');
-      // Show error message to the user
       showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text(
-                'Failed to fetch menu items. Please try again later.'),
+            content: Text('Failed to fetch menu items. Please try again later.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -69,40 +67,68 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   void _addToCart(MenuItem item) {
-    // Check if the item is already in the cart
-    if (_cartItems.contains(item)) {
-      // If the item is already in the cart, show a snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.name} is already in the cart.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } else {
-      // If the item is not in the cart, add it to the cart list
-      setState(() {
-        _cartItems.add(item);
-      });
-      // Show a snackbar to indicate that the item has been added to the cart
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${item.name} added to cart.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+    setState(() {
+      int index = _cartItems.indexWhere((i) => i.food_name == item.food_name);
+      if (index != -1) {
+        _cartItems[index].quantity++;
+      } else {
+        _cartItems.add(MenuItem(
+          food_name: item.food_name,
+          food_price: item.food_price,
+          food_image: item.food_image,
+          food_category: item.food_category,
+          quantity: 1,
+        ));
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${item.food_name} added to cart.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _categorizeMenuItems() {
     _categorizedMenuItems['minuman'] =
-        _menuItems.where((item) => item.category == 'minuman').toList();
+        _menuItems.where((item) => item.food_category == 'minuman').toList();
     _categorizedMenuItems['nasi'] =
-        _menuItems.where((item) => item.category == 'nasi').toList();
+        _menuItems.where((item) => item.food_category == 'nasi').toList();
     _categorizedMenuItems['lontong'] =
-        _menuItems.where((item) => item.category == 'lontong').toList();
+        _menuItems.where((item) => item.food_category == 'lontong').toList();
     _categorizedMenuItems['mee/meehun'] =
-        _menuItems.where((item) => item.category == 'mee/meehun').toList();
+        _menuItems.where((item) => item.food_category == 'mee/meehun').toList();
+  }
+
+  Future<void> _logout() async {
+    bool? confirmLogout = await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Pengesahan log keluar'),
+          content: Text('Adakah anda pasti mahu log keluar?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text('Log keluar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmLogout == true) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,24 +136,20 @@ class _MenuPageState extends State<MenuPage> {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Menu for ${widget.name} at Table ${widget.tableNumber}'),
+          title: Text('Menu untuk ${widget.name} di meja ${widget.tableNumber}'),
           actions: [
             IconButton(
               icon: Icon(Icons.shopping_cart),
               onPressed: () {
-                // Navigate to the cart page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CartPage()),
+                  MaterialPageRoute(builder: (context) => CartPage(cartItems: _cartItems)),
                 );
               },
             ),
             IconButton(
               icon: Icon(Icons.logout),
-              onPressed: () {
-                // Implement logout functionality
-                print('Logout button pressed');
-              },
+              onPressed: _logout,
             ),
           ],
           bottom: TabBar(
@@ -173,12 +195,13 @@ class _MenuPageState extends State<MenuPage> {
               Expanded(
                 flex: 2,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(12.0)),
-                  child: Image.memory(
-                    item.image,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
+                  child: item.food_image.isNotEmpty
+                      ? Image.memory(
+                    item.food_image,
                     fit: BoxFit.cover,
-                  ),
+                  )
+                      : Placeholder(),
                 ),
               ),
               Expanded(
@@ -189,7 +212,7 @@ class _MenuPageState extends State<MenuPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.name,
+                        item.food_name,
                         style: TextStyle(
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
@@ -199,7 +222,7 @@ class _MenuPageState extends State<MenuPage> {
                       ),
                       SizedBox(height: 4.0),
                       Text(
-                        'RM ${item.price}',
+                        'RM ${item.food_price.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 14.0,
                           color: Colors.grey[700],
@@ -210,14 +233,13 @@ class _MenuPageState extends State<MenuPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    _addToCart(item); // Add item to cart
-                    print('Item ${item.name} added to cart');
+                    _addToCart(item);
+                    print('Item ${item.food_name} ditambah ke troli');
                   },
-                  child: Text('Add to Cart'),
+                  child: Text('Tambah ke troli'),
                 ),
               ),
             ],
@@ -227,3 +249,5 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 }
+
+
