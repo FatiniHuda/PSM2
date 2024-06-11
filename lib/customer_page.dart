@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'menu_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CustomerPage extends StatefulWidget {
   @override
@@ -16,7 +17,7 @@ class _CustomerPageState extends State<CustomerPage> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      var url = 'http://10.4.29.194/ordering/customer.php';
+      var url = 'http://192.168.0.115/ordering/customer.php';
       var response = await http.post(
         Uri.parse(url),
         body: {
@@ -25,64 +26,59 @@ class _CustomerPageState extends State<CustomerPage> {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.headers['content-type']?.contains('application/json') == true) {
         var responseData;
         try {
           responseData = json.decode(response.body);
+          print("Response data: $responseData"); // Debugging statement
         } catch (e) {
-          print('Error decoding JSON: $e');
+          Fluttertoast.showToast(
+            msg: 'Error decoding response from server.',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+          );
           return;
         }
 
         if (responseData['status'] == 'success') {
+          Fluttertoast.showToast(
+            msg: 'Successfully submitted!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+          );
+
+          int customerId = responseData['customer_id'];
+
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => MenuPage(name: _name, tableNumber: _tableNumber),
+              builder: (context) => MenuPage(
+                name: _name,
+                tableNumber: _tableNumber,
+                customerId: customerId,
+              ),
             ),
           );
         } else {
-          // Handle error
-          print('Error: ${responseData['message']}');
-          showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: Text('Error'),
-                content: Text(responseData['message'] ?? 'Unknown error'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
+          Fluttertoast.showToast(
+            msg: responseData['message'] ?? 'Unknown error occurred.',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
           );
         }
       } else {
-        print('Unexpected response type: ${response.headers['content-type']}');
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('Unexpected response from server. Please try again later.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        Fluttertoast.showToast(
+          msg: 'Unexpected response from server. Please try again later.',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
         );
       }
     }
@@ -92,25 +88,30 @@ class _CustomerPageState extends State<CustomerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Selamat datang'),
+        title: Text('Selamat Datang'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
                 'Sila masukkan nama dan nombor meja:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                  labelText: 'Nama',
+                  border: OutlineInputBorder(),
+                  hintText: 'Isikan nama',
+                  contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
+                    return 'Sila isikan nama anda';
                   }
                   return null;
                 },
@@ -118,12 +119,18 @@ class _CustomerPageState extends State<CustomerPage> {
                   _name = value!;
                 },
               ),
+              SizedBox(height: 20),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Table Number'),
+                decoration: InputDecoration(
+                  labelText: 'Nombor meja',
+                  border: OutlineInputBorder(),
+                  hintText: 'Isikan nombor meja',
+                  contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your table number';
+                    return 'Sila isikan nombor meja';
                   }
                   return null;
                 },
@@ -131,12 +138,16 @@ class _CustomerPageState extends State<CustomerPage> {
                   _tableNumber = value!;
                 },
               ),
-              SizedBox(height: 20),
-              Container(
+              SizedBox(height: 30),
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _submitForm,
-                  child: Text('Proceed to Menu'),
+                  child: Text('Teruskan ke menu'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    textStyle: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ],

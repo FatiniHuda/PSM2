@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ForgotPasswordPage extends StatefulWidget {
   @override
@@ -12,6 +14,73 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _confirmPasswordController = TextEditingController();
+
+  Future<void> _resetPassword() async {
+    final String username = _usernameController.text;
+    final String password = _passwordController.text;
+
+    final url = 'http://192.168.209.131/ordering/';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        body: json.encode({
+          'username': username,
+          'password': password,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        if (responseData['status'] == 'success') {
+          // Show success message
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Success'),
+              content: Text('Password reset successful.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Navigate back to login screen
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Show error message
+          _showErrorDialog(responseData['message']);
+        }
+      } else {
+        // Show error message
+        _showErrorDialog('Failed to reset password. Please try again.');
+      }
+    } catch (error) {
+      // Show error message
+      _showErrorDialog('An error occurred. Please try again.');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,14 +159,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   },
                 ),
                 SizedBox(height: 20.0),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Form is valid, proceed with password reset logic
-                      _resetPassword();
-                    }
-                  },
-                  child: Text('Tukar kata laluan'),
+                Container(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        // Form is valid, proceed with password reset logic
+                        _resetPassword();
+                      }
+                    },
+                    child: Text('Tukar kata laluan'),
+                  ),
                 ),
               ],
             ),
@@ -105,11 +177,5 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       ),
     );
-  }
-
-  void _resetPassword() {
-    // Implement logic for sending password reset email
-    // You can access the entered username and password via _usernameController.text and _passwordController.text respectively
-    // Optionally, you can show a confirmation dialog or a toast message here
   }
 }

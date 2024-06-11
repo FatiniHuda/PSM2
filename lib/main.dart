@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Login.dart'; // Import the admin login page
-import 'customer_page.dart';
-import 'menu_page.dart'; // Import the menu page
+import 'customer_page.dart'; // Import the customer page
 
 void main() {
   runApp(MyApp());
@@ -34,9 +33,15 @@ class MyHomePage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Image.asset(
+                'assets/logo.jpg', // Ensure this path matches your asset's location
+                width: 250, // Adjust the width as needed
+                height: 250, // Adjust the height as needed
+              ),
+              SizedBox(height: 20), // Add some spacing between the image and text
               Text(
                 'Pilih peranan anda:',
-                style: TextStyle(fontSize: 18.0),
+                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20), // Add some spacing between text and buttons
@@ -60,7 +65,7 @@ class MyHomePage extends StatelessWidget {
                   ),
                   child: Text('Pelanggan'),
                 ),
-              ), // Remove this extra parenthesis
+              ),
               SizedBox(height: 10), // Add some spacing between buttons
               Container(
                 width: double.infinity,

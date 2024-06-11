@@ -25,7 +25,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         title: Text('Log Masuk Pentadbir'),
       ),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.all(20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -34,6 +34,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 controller: _usernameController,
                 decoration: InputDecoration(
                   labelText: 'Nama Pengguna',
+                  border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -47,6 +48,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Kata Laluan',
+                  border: OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isObscure ? Icons.visibility : Icons.visibility_off,
@@ -67,24 +69,25 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                 },
               ),
               SizedBox(height: 20.0),
-              SizedBox( // Adjusted the button width
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _login,
-                  child: _isLoading ? CircularProgressIndicator() : Text(
-                      'Log Masuk'),
+                  child: _isLoading ? CircularProgressIndicator() : Text('Log Masuk'),
                 ),
               ),
-              SizedBox(height: 10.0), // Added space
-              Text(
-                _errorMessage,
-                style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16.0,
+              SizedBox(height: 20.0),
+              if (_errorMessage.isNotEmpty)
+                Text(
+                  _errorMessage,
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16.0,
+                  ),
                 ),
-              ),
-              SizedBox(height: 10.0), // Added space
+              SizedBox(height: 10.0),
               RichText(
+                textAlign: TextAlign.center,
                 text: TextSpan(
                   text: "Tiada akaun? ",
                   style: TextStyle(
@@ -109,25 +112,28 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                           );
                         },
                     ),
-                    TextSpan(text: ' | '), // Added separator
-                    TextSpan(
-                      text: 'Lupa Kata Laluan', // Added "Forgot Password?" link
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        decoration: TextDecoration.underline,
-                      ),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          // Navigate to forgot password page when "Lupa Kata Laluan" is tapped
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ForgotPasswordPage()),
-                          );
-                        },
-                    ),
                   ],
+                ),
+              ),
+              SizedBox(height: 10.0),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  text: 'Lupa Kata Laluan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.blue,
+                    decoration: TextDecoration.underline,
+                  ),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () {
+                      // Navigate to forgot password page when "Lupa Kata Laluan" is tapped
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ForgotPasswordPage()),
+                      );
+                    },
                 ),
               ),
             ],
@@ -188,7 +194,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   Future<String> authenticateUser() async {
     try {
       final response = await http.post(
-        Uri.parse('http://10.4.29.194/ordering/admin_login.php'),
+        Uri.parse('http://192.168.0.115/ordering/admin_login.php'),
         body: {
           'username': _usernameController.text,
           'password': _passwordController.text,

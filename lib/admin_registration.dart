@@ -15,7 +15,7 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
   bool _isPasswordObscure = true;
   bool _isConfirmPasswordObscure = true;
   String _errorMessage = '';
-  bool _isLoading = false; // Add this line to track loading state
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,103 +29,131 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama Pengguna',
-                ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Sila masukkan nama pengguna';
-                  }
-                  return null;
-                },
-              ),
+              _buildUsernameField(),
               SizedBox(height: 20.0),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'E-mel',
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Sila masukkan alamat e-mel';
-                  }
-                  // Add email format validation here if needed
-                  return null;
-                },
-              ),
+              _buildEmailField(),
               SizedBox(height: 20.0),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Kata Laluan',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordObscure = !_isPasswordObscure;
-                      });
-                    },
-                  ),
-                ),
-                obscureText: _isPasswordObscure,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Sila masukkan kata laluan';
-                  }
-                  // Add password strength validation here if needed
-                  return null;
-                },
-              ),
+              _buildPasswordField(),
               SizedBox(height: 20.0),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: InputDecoration(
-                  labelText: 'Sahkan Kata Laluan',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isConfirmPasswordObscure ? Icons.visibility : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isConfirmPasswordObscure = !_isConfirmPasswordObscure;
-                      });
-                    },
-                  ),
-                ),
-                obscureText: _isConfirmPasswordObscure,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Sila sahkan kata laluan';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'Kata laluan tidak sepadan';
-                  }
-                  return null;
-                },
-              ),
+              _buildConfirmPasswordField(),
               SizedBox(height: 20.0),
-              SizedBox( // Adjusted the button width
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _registerUser, // Change _login to _registerUser
-                  child: _isLoading ? CircularProgressIndicator() : Text('Daftar'),
-                ),
-              ),
-              SizedBox(height: 10.0), // Added space
-              Text(
-                _errorMessage,
-                style: TextStyle(
-                  color: Colors.red,
-                ),
-              ),
+              _buildRegisterButton(),
+              SizedBox(height: 10.0),
+              _buildErrorMessage(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUsernameField() {
+    return TextFormField(
+      controller: _usernameController,
+      decoration: InputDecoration(
+        labelText: 'Nama Pengguna',
+        border: OutlineInputBorder(),
+      ),
+      validator: (value) {
+        if (value!.isEmpty) {
+          return 'Sila masukkan nama pengguna';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildEmailField() {
+    return TextFormField(
+      controller: _emailController,
+      decoration: InputDecoration(
+        labelText: 'E-mel',
+        border: OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.emailAddress,
+      validator: (value) {
+        if (value!.isEmpty) {
+          return 'Sila masukkan alamat e-mel';
+        }
+        // Add email format validation here if needed
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      decoration: InputDecoration(
+        labelText: 'Kata Laluan',
+        border: OutlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () {
+            setState(() {
+              _isPasswordObscure = !_isPasswordObscure;
+            });
+          },
+        ),
+      ),
+      obscureText: _isPasswordObscure,
+      validator: (value) {
+        if (value!.isEmpty) {
+          return 'Sila masukkan kata laluan';
+        }
+        // Add password strength validation here if needed
+        return null;
+      },
+    );
+  }
+
+  Widget _buildConfirmPasswordField() {
+    return TextFormField(
+      controller: _confirmPasswordController,
+      decoration: InputDecoration(
+        labelText: 'Sahkan Kata Laluan',
+        border: OutlineInputBorder(),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isConfirmPasswordObscure ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () {
+            setState(() {
+              _isConfirmPasswordObscure = !_isConfirmPasswordObscure;
+            });
+          },
+        ),
+      ),
+      obscureText: _isConfirmPasswordObscure,
+      validator: (value) {
+        if (value!.isEmpty) {
+          return 'Sila sahkan kata laluan';
+        }
+        if (value != _passwordController.text) {
+          return 'Kata laluan tidak sepadan';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _registerUser,
+        child: _isLoading ? CircularProgressIndicator() : Text('Daftar'),
+      ),
+    );
+  }
+
+  Widget _buildErrorMessage() {
+    return Text(
+      _errorMessage,
+      style: TextStyle(
+        color: Colors.red,
       ),
     );
   }
@@ -157,67 +185,43 @@ class _AdminRegistrationPageState extends State<AdminRegistrationPage> {
     return true;
   }
 
-
   Future<void> _registerUser() async {
+    if (!_validateInputs()) return;
+
     try {
-      // Clear error message
       setState(() {
+        _isLoading = true;
         _errorMessage = '';
       });
 
-      // Validate inputs first
-      if (!_validateInputs()) {
-        return; // Stop registration process if inputs are not valid
-      }
-
-      final username = _usernameController.text;
-      final email = _emailController.text;
-      final password = _passwordController.text;
-
-      // Set loading state
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Perform registration
       final response = await http.post(
-        Uri.parse('http://10.4.29.194/ordering/admin_register.php'), // Replace with your actual backend URL
+        Uri.parse('http://192.168.0.115/ordering/admin_register.php'),
         body: {
-          'username': username,
-          'email': email,
-          'password': password,
+          'username': _usernameController.text,
+          'email': _emailController.text,
+          'password': _passwordController.text,
         },
       );
 
-      // Check registration response
       if (response.statusCode == 200) {
-        // Registration successful
-        print('Registration successful');
-        _showSuccessDialog(); // Show success dialog
+        _showSuccessDialog();
       } else if (response.statusCode == 400) {
-        // Registration failed due to validation error
-        print('Registration failed due to validation error');
         setState(() {
           _errorMessage = 'Pendaftaran gagal. Data tidak sah.';
         });
-        _showErrorDialog(); // Show error dialog
+        _showErrorDialog();
       } else {
-        // Other registration failures
-        print('Registration failed with status: ${response.statusCode}');
         setState(() {
           _errorMessage = 'Pendaftaran gagal. Sila cuba lagi.';
         });
-        _showErrorDialog(); // Show error dialog
+        _showErrorDialog();
       }
     } catch (e) {
-      // Error registering user
-      print('Error registering user: $e');
       setState(() {
         _errorMessage = 'Ralat: $e';
       });
-      _showErrorDialog(); // Show error dialog
+      _showErrorDialog();
     } finally {
-      // Reset loading state
       setState(() {
         _isLoading = false;
       });
